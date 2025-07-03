@@ -45,7 +45,7 @@ public class PhysicalProduct extends Product {
         return this.supplierContact;
     }
 
-    public void setSupplierContact(String supplierName) {
+    public void setSupplierContact(long supplierContact) {
         this.supplierContact = supplierContact;
     }
 
@@ -57,7 +57,8 @@ public class PhysicalProduct extends Product {
     @Override
     public String toString() {
         return this.productId + " " + this.name + " " + this.category + " " + this.basePrice + " " + this.taxRate
-                + " " + this.seasonalDiscount + " " + this.productType + " " + this.stockQuantity + " "
+                + " " + this.seasonalDiscount + " " + this.productType + " " + this.priceAfterTax() + " "
+                + this.priceAfterDiscount() + " " + this.priceAfterTaxAndDiscount() + " " + this.stockQuantity + " "
                 + this.reorderLevel + " " + this.supplierName + " " + this.supplierContact;
     }
 }

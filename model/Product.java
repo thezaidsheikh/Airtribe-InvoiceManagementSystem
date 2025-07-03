@@ -1,7 +1,6 @@
 package model;
 
 import common.ProductCategory;
-import common.utils;
 
 public class Product {
     protected int productId;
@@ -11,6 +10,9 @@ public class Product {
     protected int taxRate = 18;
     protected ProductCategory category;
     protected String productType;
+
+    public Product() {
+    }
 
     public Product(int productId, String name, ProductCategory category, long basePrice, int taxRate,
             int seasonalDiscount,
@@ -32,17 +34,24 @@ public class Product {
         return this.productType;
     }
 
-    private final long tax() {
+    public final long getTaxAmount() {
         return this.getBasePrice() * this.getTaxRate() / 100;
     };
 
-    private final long discount() {
+    public final long getSeasonalDiscountAmount() {
         return this.getBasePrice() * this.getSeasonalDiscount() / 100;
     };
 
-    public long getRegularPrice() {
-        long price = (long) (this.getBasePrice() + this.tax()) - this.discount();
-        return price;
+    public final long priceAfterTax() {
+        return this.getBasePrice() + this.getTaxAmount();
+    }
+
+    public final long priceAfterDiscount() {
+        return this.getBasePrice() - this.getSeasonalDiscountAmount();
+    }
+
+    public final long priceAfterTaxAndDiscount() {
+        return (this.getBasePrice() + this.getTaxAmount()) - this.getSeasonalDiscountAmount();
     }
 
     public String getName() {
@@ -88,7 +97,8 @@ public class Product {
     @Override
     public String toString() {
         return this.productId + " " + this.name + " " + this.category + " " + this.basePrice + " " + this.taxRate
-                + " " + this.seasonalDiscount + " " + this.productType;
+                + " " + this.seasonalDiscount + " " + this.productType + " " + this.priceAfterTax() + " "
+                + this.priceAfterDiscount() + " " + this.priceAfterTaxAndDiscount();
     }
 
 }

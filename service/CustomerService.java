@@ -1,0 +1,227 @@
+package service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Collectors;
+
+import common.ProductCategory;
+import common.utils;
+import model.CorporateCustomer;
+import model.Customer;
+import model.PremiumCustomer;
+import model.Product;
+
+public class CustomerService {
+    private List<Customer> customers = new ArrayList<>();
+    private final Scanner scanner;
+
+    public CustomerService(Scanner scanner) {
+        this.scanner = scanner;
+    }
+
+    public void loadCustomers() {
+        this.customers = utils.readData("./db/customers.txt").map(line -> {
+            String[] parts = line.split(" ");
+            int customerId = Integer.parseInt(parts[0]);
+            String name = parts[1];
+            String email = parts[2];
+            long phone = Long.parseLong(parts[3]);
+            String address = parts[4];
+            long registrationDate = Long.parseLong(parts[5]);
+            String customerType = parts[6];
+            if (customerType.equals("CorporateCustomer")) {
+                long creditLimit = Long.parseLong(parts[7]);
+                String paymentTerms = parts[8];
+                boolean taxExemptionStatus = Boolean.parseBoolean(parts[9]);
+                return new CorporateCustomer(customerId, name, email, phone, address, registrationDate, creditLimit,
+                        paymentTerms, taxExemptionStatus);
+            } else {
+                return new PremiumCustomer(customerId, name, email, phone, address, registrationDate);
+            }
+        }).collect(Collectors.toList());
+    }
+
+    public void addCustomer() {
+        System.out.println("========================== ADD CUSTOMER =============================");
+        System.out.print("Enter Customer Name: ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+
+        System.out.print("Enter Customer Contact: ");
+        long contact = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
+
+        System.out.print("Enter Customer Email: ");
+        String email = this.scanner.nextLine().split("\\s+")[0];
+
+        System.out.print("Enter Customer Address: ");
+        String address = this.scanner.nextLine().split("\\s+")[0];
+
+        System.out.println("Select the type of customer: \n1. Premium Customer\n2. Corporate Customer\n");
+        String customerType = this.scanner.nextLine().split("\\s+")[0];
+        if (customerType.equals("2")) {
+            System.out.println("Enter the credit limit: ");
+            long creditLimit = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
+            System.out.println("Enter the payment terms: ");
+            String paymentTerms = this.scanner.nextLine().split("\\s+")[0];
+            System.out.println("Enter the tax exemption status: ");
+            boolean taxExemptionStatus = this.scanner.nextBoolean();
+            CorporateCustomer corporateCustomer = new CorporateCustomer(utils.generateId(4), name, email, contact,
+                    address, utils.getEpochTime(), creditLimit, paymentTerms, taxExemptionStatus);
+            this.customers.add(corporateCustomer);
+        } else {
+            PremiumCustomer premiumCustomer = new PremiumCustomer(utils.generateId(4), name, email, contact,
+                    address, utils.getEpochTime());
+            this.customers.add(premiumCustomer);
+        }
+        utils.saveData("./db/customers.txt", this.customers);
+        System.out.println("===== CUSTOMER ADDED SUCCESSFULLY ====================");
+        System.out.println("=====================================");
+    }
+
+    public void viewAllCustomers() {
+        System.out.println("========================== VIEW ALL CUSTOMERS =============================");
+        showCustomerList(this.customers);
+    }
+
+    private void showCustomerList(List<Customer> customersList) {
+        System.out.println("Result -\n");
+        if (customersList.size() == 0) {
+            System.out.println("NO CUSTOMERS YET");
+            System.out.println("=====================================");
+            return;
+        }
+        String[] headers = { "CUSTOMER ID", "NAME", "EMAIL", "PHONE", "ADDRESS", "REGISTRATION DATE", "CUSTOMER TYPE",
+                "DISCOUNT PERCENTAGE", "LOYALTY POINTS", "CREDIT LIMIT", "PAYMENT TERMS", "TAX EXEMPTION STATUS" };
+
+        // Calculate max width for each column
+        int[] colWidths = new int[headers.length];
+        colWidths[0] = headers[0].length();
+        colWidths[1] = headers[1].length();
+        colWidths[2] = headers[2].length();
+        colWidths[3] = headers[3].length();
+        colWidths[4] = headers[4].length();
+        colWidths[5] = headers[5].length();
+        colWidths[6] = headers[6].length();
+        colWidths[7] = headers[7].length();
+        colWidths[8] = headers[8].length();
+        colWidths[9] = headers[9].length();
+        colWidths[10] = headers[10].length();
+        colWidths[11] = headers[11].length();
+
+        for (Customer customer : customersList) {
+            if (customer instanceof PremiumCustomer) {
+                PremiumCustomer premiumCustomer = (PremiumCustomer) customer;
+                colWidths[0] = Math.max(colWidths[0], String.valueOf(premiumCustomer.getCustomerId()).length());
+                colWidths[1] = Math.max(colWidths[1], premiumCustomer.getName().length());
+                colWidths[2] = Math.max(colWidths[2], premiumCustomer.getEmail().length());
+                colWidths[3] = Math.max(colWidths[3], String.valueOf(premiumCustomer.getPhone()).length());
+                colWidths[4] = Math.max(colWidths[4], premiumCustomer.getAddress().length());
+                colWidths[5] = Math.max(colWidths[5],
+                        utils.convertEpochToDateTime(premiumCustomer.getRegistrationDate()).length());
+                colWidths[6] = Math.max(colWidths[6], premiumCustomer.getCustomerType().length());
+                colWidths[7] = Math.max(colWidths[7], String.valueOf(premiumCustomer.getDiscountPercentage()).length());
+                colWidths[8] = Math.max(colWidths[8], String.valueOf(premiumCustomer.getLoyaltyPoints()).length());
+            } else {
+                CorporateCustomer corporateCustomer = (CorporateCustomer) customer;
+                colWidths[0] = Math.max(colWidths[0], String.valueOf(corporateCustomer.getCustomerId()).length());
+                colWidths[1] = Math.max(colWidths[1], corporateCustomer.getName().length());
+                colWidths[2] = Math.max(colWidths[2], corporateCustomer.getEmail().length());
+                colWidths[3] = Math.max(colWidths[3], String.valueOf(corporateCustomer.getPhone()).length());
+                colWidths[4] = Math.max(colWidths[4], corporateCustomer.getAddress().length());
+                colWidths[5] = Math.max(colWidths[5],
+                        utils.convertEpochToDateTime(corporateCustomer.getRegistrationDate()).length());
+                colWidths[6] = Math.max(colWidths[6], corporateCustomer.getCustomerType().length());
+                colWidths[9] = Math.max(colWidths[9], String.valueOf(corporateCustomer.getCreditLimit()).length());
+                colWidths[10] = Math.max(colWidths[10], corporateCustomer.getPaymentTerms().length());
+                colWidths[11] = Math.max(colWidths[11],
+                        String.valueOf(corporateCustomer.getTaxExemptionStatus()).length());
+            }
+        }
+
+        // Build format string
+        String format = String.format(
+                "%%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds%n",
+                colWidths[0], colWidths[1], colWidths[2], colWidths[3], colWidths[4], colWidths[5], colWidths[6],
+                colWidths[7], colWidths[8], colWidths[9], colWidths[10], colWidths[11]);
+
+        // Print header
+        System.out.printf(format, (Object[]) headers);
+        System.out.println();
+
+        // Print rows
+        for (Customer customer : customersList) {
+            if (customer instanceof PremiumCustomer) {
+                PremiumCustomer premiumCustomer = (PremiumCustomer) customer;
+                System.out.printf(format,
+                        String.valueOf(premiumCustomer.getCustomerId()),
+                        premiumCustomer.getName(),
+                        premiumCustomer.getEmail(),
+                        String.valueOf(premiumCustomer.getPhone()),
+                        premiumCustomer.getAddress(),
+                        utils.convertEpochToDateTime(premiumCustomer.getRegistrationDate()),
+                        premiumCustomer.getCustomerType(),
+                        String.valueOf(premiumCustomer.getDiscountPercentage()),
+                        String.valueOf(premiumCustomer.getLoyaltyPoints()),
+                        "-", "-", "-");
+            } else {
+                CorporateCustomer corporateCustomer = (CorporateCustomer) customer;
+                System.out.printf(format,
+                        String.valueOf(corporateCustomer.getCustomerId()),
+                        corporateCustomer.getName(),
+                        corporateCustomer.getEmail(),
+                        String.valueOf(corporateCustomer.getPhone()),
+                        corporateCustomer.getAddress(),
+                        utils.convertEpochToDateTime(corporateCustomer.getRegistrationDate()),
+                        corporateCustomer.getCustomerType(),
+                        "-",
+                        "-",
+                        String.valueOf(corporateCustomer.getCreditLimit()),
+                        corporateCustomer.getPaymentTerms(),
+                        String.valueOf(corporateCustomer.getTaxExemptionStatus()));
+            }
+        }
+        System.out.println("\n===================================== END CUSTOMER LIST =============================\n");
+    }
+
+    public void searchCustomerByID() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.print("Enter Customer ID: ");
+        int customerId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        List<Customer> customer = this.customers.stream().filter(p -> p.getCustomerId() == customerId)
+                .collect(Collectors.toList());
+        if (customer.size() == 0) {
+            System.out.println("Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showCustomerList(customer);
+    }
+
+    public void searchCustomerByName() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.print("Enter Customer Name: ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+        List<Customer> customer = this.customers.stream().filter(p -> p.getName().equals(name))
+                .collect(Collectors.toList());
+        if (customer.size() == 0) {
+            System.out.println("Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showCustomerList(customer);
+    }
+
+    public void searchCustomerByEmail() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.print("Enter Customer Email: ");
+        String email = this.scanner.nextLine().split("\\s+")[0];
+        List<Customer> customer = this.customers.stream().filter(p -> p.getEmail().equals(email))
+                .collect(Collectors.toList());
+        if (customer.size() == 0) {
+            System.out.println("Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showCustomerList(customer);
+    }
+}

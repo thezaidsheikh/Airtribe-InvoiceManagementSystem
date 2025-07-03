@@ -4,11 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import common.ProductCategory;
 import common.utils;
+import model.CorporateCustomer;
+import model.Customer;
 import model.DigitalService;
 import model.PhysicalProduct;
+import model.PremiumCustomer;
 import model.Product;
 
 public class ProductService {
@@ -104,29 +108,253 @@ public class ProductService {
 
     public void viewAllProducts() {
         System.out.println("========================== VIEW ALL PRODUCTS =============================");
-        if (this.products.size() == 0) {
+        showProductList(this.products);
+    }
+
+    private void showProductList(List<Product> productsList) {
+        System.out.println("Result -\n");
+        if (productsList.size() == 0) {
             System.out.println("NO PRODUCTS YET");
             System.out.println("=====================================");
             return;
         }
-        System.out.println(
-                "PRODUCT ID\tNAME\tCATEGORY\tBASE PRICE\tTAX RATE\tSEASONAL DISCOUNT\tPRODUCT TYPE\tStock Quantity\tReorder Level\tSupplier Name\tSupplier Contact");
-        for (int i = 0; i < this.products.size(); i++) {
-            if (this.products.get(i) instanceof PhysicalProduct) {
-                PhysicalProduct physicalProduct = (PhysicalProduct) this.products.get(i);
-                System.out.println(physicalProduct.getProductId() + "\t" + physicalProduct.getName() + "\t"
-                        + physicalProduct.getCategory() + "\t" + physicalProduct.getBasePrice() + "\t"
-                        + physicalProduct.getTaxRate() + "\t" + physicalProduct.getSeasonalDiscount() + "\t"
-                        + physicalProduct.getProductType() + "\t" + physicalProduct.getStockQuantity() + "\t"
-                        + physicalProduct.getReorderLevel() + "\t" + physicalProduct.getSupplierName() + "\t"
-                        + physicalProduct.getSupplierContact());
+
+        String[] headers = { "PRODUCT ID", "NAME", "CATEGORY", "BASE PRICE", "TAX RATE", "SEASONAL DISCOUNT",
+                "PRODUCT TYPE", "Price After Tax", "Price After Discount", "Price After Tax and Discount",
+                "Stock Quantity", "Reorder Level", "Supplier Name", "Supplier Contact" };
+
+        // Calculate max width for each column
+        int[] colWidths = new int[headers.length];
+        colWidths[0] = headers[0].length();
+        colWidths[1] = headers[1].length();
+        colWidths[2] = headers[2].length();
+        colWidths[3] = headers[3].length();
+        colWidths[4] = headers[4].length();
+        colWidths[5] = headers[5].length();
+        colWidths[6] = headers[6].length();
+        colWidths[7] = headers[7].length();
+        colWidths[8] = headers[8].length();
+        colWidths[9] = headers[9].length();
+        colWidths[10] = headers[10].length();
+        colWidths[11] = headers[11].length();
+        colWidths[12] = headers[12].length();
+        colWidths[13] = headers[13].length();
+
+        for (Product product : productsList) {
+            if (product instanceof PhysicalProduct) {
+                PhysicalProduct physicalProduct = (PhysicalProduct) product;
+                colWidths[0] = Math.max(colWidths[0], String.valueOf(physicalProduct.getProductId()).length());
+                colWidths[1] = Math.max(colWidths[1], physicalProduct.getName().length());
+                colWidths[2] = Math.max(colWidths[2], physicalProduct.getCategory().name().length());
+                colWidths[3] = Math.max(colWidths[3], String.valueOf(physicalProduct.getBasePrice()).length());
+                colWidths[4] = Math.max(colWidths[4], String.valueOf(physicalProduct.getTaxRate()).length());
+                colWidths[5] = Math.max(colWidths[5], String.valueOf(physicalProduct.getSeasonalDiscount()).length());
+                colWidths[6] = Math.max(colWidths[6], physicalProduct.getProductType().length());
+                colWidths[7] = Math.max(colWidths[7], String.valueOf(physicalProduct.priceAfterTax()).length());
+                colWidths[8] = Math.max(colWidths[8], String.valueOf(physicalProduct.priceAfterDiscount()).length());
+                colWidths[9] = Math.max(colWidths[9],
+                        String.valueOf(physicalProduct.priceAfterTaxAndDiscount()).length());
+                colWidths[10] = Math.max(colWidths[10], String.valueOf(physicalProduct.getStockQuantity()).length());
+                colWidths[11] = Math.max(colWidths[11], String.valueOf(physicalProduct.getReorderLevel()).length());
+                colWidths[12] = Math.max(colWidths[12], physicalProduct.getSupplierName().length());
+                colWidths[13] = Math.max(colWidths[13], String.valueOf(physicalProduct.getSupplierContact()).length());
             } else {
-                System.out.println(this.products.get(i).getProductId() + "\t" + this.products.get(i).getName() + "\t"
-                        + this.products.get(i).getCategory() + "\t" + this.products.get(i).getBasePrice() + "\t"
-                        + this.products.get(i).getTaxRate() + "\t" + this.products.get(i).getSeasonalDiscount() + "\t"
-                        + this.products.get(i).getProductType());
+                DigitalService digitalService = (DigitalService) product;
+                colWidths[0] = Math.max(colWidths[0], String.valueOf(digitalService.getProductId()).length());
+                colWidths[1] = Math.max(colWidths[1], digitalService.getName().length());
+                colWidths[2] = Math.max(colWidths[2], digitalService.getCategory().name().length());
+                colWidths[3] = Math.max(colWidths[3], String.valueOf(digitalService.getBasePrice()).length());
+                colWidths[4] = Math.max(colWidths[4], String.valueOf(digitalService.getTaxRate()).length());
+                colWidths[5] = Math.max(colWidths[5], String.valueOf(digitalService.getSeasonalDiscount()).length());
+                colWidths[6] = Math.max(colWidths[6], digitalService.getProductType().length());
+                colWidths[7] = Math.max(colWidths[7], String.valueOf(digitalService.priceAfterTax()).length());
+                colWidths[8] = Math.max(colWidths[8], String.valueOf(digitalService.priceAfterDiscount()).length());
+                colWidths[9] = Math.max(colWidths[9],
+                        String.valueOf(digitalService.priceAfterTaxAndDiscount()).length());
             }
         }
-        System.out.println("=====================================");
+
+        // Build format string
+        String format = String.format(
+                "%%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds  %%-%ds%n",
+                colWidths[0], colWidths[1], colWidths[2], colWidths[3], colWidths[4], colWidths[5], colWidths[6],
+                colWidths[7], colWidths[8], colWidths[9], colWidths[10]);
+
+        // Print header
+        System.out.printf(format, (Object[]) headers);
+        System.out.println();
+
+        // Print rows
+        for (Product product : productsList) {
+            if (product instanceof PhysicalProduct) {
+                PhysicalProduct physicalProduct = (PhysicalProduct) product;
+                System.out.printf(format,
+                        String.valueOf(physicalProduct.getProductId()),
+                        physicalProduct.getName(),
+                        physicalProduct.getCategory(),
+                        String.valueOf(physicalProduct.getBasePrice()),
+                        String.valueOf(physicalProduct.getTaxRate()),
+                        String.valueOf(physicalProduct.getSeasonalDiscount()),
+                        physicalProduct.getProductType(),
+                        String.valueOf(physicalProduct.priceAfterTax()),
+                        String.valueOf(physicalProduct.priceAfterDiscount()),
+                        String.valueOf(physicalProduct.priceAfterTaxAndDiscount()),
+                        String.valueOf(physicalProduct.getStockQuantity()),
+                        String.valueOf(physicalProduct.getReorderLevel()),
+                        physicalProduct.getSupplierName(),
+                        String.valueOf(physicalProduct.getSupplierContact()));
+            } else {
+                DigitalService digitalService = (DigitalService) product;
+                System.out.printf(format,
+                        String.valueOf(digitalService.getProductId()),
+                        digitalService.getName(),
+                        digitalService.getCategory(),
+                        String.valueOf(digitalService.getBasePrice()),
+                        String.valueOf(digitalService.getTaxRate()),
+                        String.valueOf(digitalService.getSeasonalDiscount()),
+                        digitalService.getProductType(),
+                        String.valueOf(digitalService.priceAfterTax()),
+                        String.valueOf(digitalService.priceAfterDiscount()),
+                        String.valueOf(digitalService.priceAfterTaxAndDiscount()),
+                        "-", "-", "-", "-");
+            }
+        }
+        System.out.println("\n===================================== END PRODUCT LIST =============================\n");
+    }
+
+    public void searchProductByID() {
+        System.out.println("========================== SEARCH PRODUCT =============================");
+        System.out.print("Enter Product ID: ");
+        int productId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        List<Product> product = this.products.stream().filter(p -> p.getProductId() == productId)
+                .collect(Collectors.toList());
+        if (product.size() == 0) {
+            System.out.println("Product not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showProductList(product);
+    }
+
+    public void searchProductByName() {
+        System.out.println("========================== SEARCH PRODUCT =============================");
+        System.out.print("Enter Product Name: ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+        List<Product> product = this.products.stream().filter(p -> p.getName().equals(name))
+                .collect(Collectors.toList());
+        if (product.size() == 0) {
+            System.out.println("Product not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showProductList(product);
+    }
+
+    public void searchProductByCategory() {
+        System.out.println("========================== SEARCH PRODUCT =============================");
+        System.out.print("Enter Product Category: ");
+        String category = this.scanner.nextLine().split("\\s+")[0];
+        List<Product> product = this.products.stream()
+                .filter(p -> p.getCategory().equals(ProductCategory.valueOf(category)))
+                .collect(Collectors.toList());
+        if (product.size() == 0) {
+            System.out.println("Product not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showProductList(product);
+    }
+
+    public void updateProduct() {
+        System.out.println("========================== UPDATE PRODUCT =============================");
+
+        System.out.print("Enter Product ID: ");
+        int productId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        int productIndex = IntStream.range(0, this.products.size())
+                .filter(i -> this.products.get(i).getProductId() == productId)
+                .findFirst().orElse(-1);
+        if (productIndex == -1) {
+            System.out.println("Product not found");
+            System.out.println("=====================================");
+            return;
+        }
+        Product product = this.products.get(productIndex);
+
+        System.out.print("Enter the new name (current name: " + product.getName() + ") (press enter to skip): ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+        if (!name.isEmpty()) {
+            product.setName(name);
+        }
+
+        while (true) {
+            System.out.print("Enter new Product Category (Electronics, Clothing, Books, Food) (current category: "
+                    + product.getCategory() + ") (press enter to skip): ");
+            String cat = this.scanner.nextLine().split("\\s+")[0];
+            if (!cat.isEmpty()) {
+                if (!cat.equals(ProductCategory.Electronics.name()) && !cat.equals(ProductCategory.Clothing.name())
+                        && !cat.equals(ProductCategory.Books.name()) && !cat.equals(ProductCategory.Food.name())) {
+                    System.out.println("Invalid category. Please try again.");
+                    continue;
+                } else {
+                    product.setCategory(ProductCategory.valueOf(cat));
+                }
+            }
+
+            break;
+        }
+
+        System.out.print(
+                "Enter the new base price (current price: " + product.getBasePrice() + ") (press enter to skip): ");
+        String basePrice = this.scanner.nextLine().split("\\s+")[0];
+        if (!basePrice.isEmpty()) {
+            product.setBasePrice(Long.parseLong(basePrice));
+        }
+
+        System.out.print("Enter the new tax rate (current rate: " + product.getTaxRate() + ") (press enter to skip): ");
+        String taxRate = this.scanner.nextLine().split("\\s+")[0];
+        if (!taxRate.isEmpty()) {
+            product.setTaxRate(Integer.parseInt(taxRate));
+        }
+
+        System.out.print("Enter the new seasonal discount (current discount: " + product.getSeasonalDiscount()
+                + ") (press enter to skip): ");
+        String seasonalDiscount = this.scanner.nextLine().split("\\s+")[0];
+        if (!seasonalDiscount.isEmpty()) {
+            product.setSeasonalDiscount(Integer.parseInt(seasonalDiscount));
+        }
+
+        if (product instanceof PhysicalProduct) {
+            PhysicalProduct physicalProduct = (PhysicalProduct) product;
+            System.out.print("Enter the new stock quantity (current quantity: " + physicalProduct.getStockQuantity()
+                    + ") (press enter to skip): ");
+            String stockQuantity = this.scanner.nextLine().split("\\s+")[0];
+            if (!stockQuantity.isEmpty()) {
+                physicalProduct.setStockQuantity(Integer.parseInt(stockQuantity));
+            }
+
+            System.out.print("Enter the new reorder level (current level: " + physicalProduct.getReorderLevel()
+                    + ") (press enter to skip): ");
+            String reorderLevel = this.scanner.nextLine().split("\\s+")[0];
+            if (!reorderLevel.isEmpty()) {
+                physicalProduct.setReorderLevel(Integer.parseInt(reorderLevel));
+            }
+
+            System.out.print("Enter the new supplier name (current name: " + physicalProduct.getSupplierName()
+                    + ") (press enter to skip): ");
+            String supplierName = this.scanner.nextLine().split("\\s+")[0];
+            if (!supplierName.isEmpty()) {
+                physicalProduct.setSupplierName(supplierName);
+            }
+
+            System.out.print("Enter the new supplier contact (current contact: " + physicalProduct.getSupplierContact()
+                    + ") (press enter to skip): ");
+            String supplierContact = this.scanner.nextLine().split("\\s+")[0];
+            if (!supplierContact.isEmpty()) {
+                physicalProduct.setSupplierContact(Long.parseLong(supplierContact));
+            }
+        }
+        this.products.set(productIndex, product);
+        utils.saveData("./db/products.txt", this.products);
+        System.out.println("Product updated successfully");
     }
 }

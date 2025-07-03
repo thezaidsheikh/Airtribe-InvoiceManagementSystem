@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,5 +75,16 @@ public class utils {
             System.out.println("Error reading file: " + e.getMessage());
             throw new Error("Error reading file: " + e.getMessage());
         }
+    }
+
+    public static long getEpochTime() {
+        return Instant.now().toEpochMilli();
+    }
+
+    public static String convertEpochToDateTime(long number) {
+        LocalDateTime dateTime = LocalDateTime.ofInstant(
+                Instant.ofEpochMilli(number),
+                ZoneId.systemDefault());
+        return dateTime.toString();
     }
 }

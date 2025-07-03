@@ -2,27 +2,32 @@ package model;
 
 import java.util.Date;
 
-import common.utils;
-
 public class Customer {
 
-    private int customerId;
-    private String name;
-    private String email;
-    private String phone;
-    private String address;
-    private Date registrationDate;
+    protected int customerId;
+    protected String name;
+    protected String email;
+    protected long phone;
+    protected String address;
+    protected long registrationDate;
+    protected String customerType;
 
     public Customer() {
     }
 
-    protected Customer(String name, String email, String phone, String address) {
-        this.customerId = utils.generateId(4);
+    protected Customer(int customerId, String name, String email, long phone, String address, long registrationDate,
+            String customerType) {
+        this.customerId = customerId;
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.address = address;
-        this.registrationDate = new Date();
+        this.registrationDate = registrationDate;
+        this.customerType = customerType;
+    }
+
+    public int getCustomerId() {
+        return customerId;
     }
 
     public String getName() {
@@ -41,11 +46,11 @@ public class Customer {
         this.email = email;
     }
 
-    public String getPhone() {
+    public long getPhone() {
         return phone;
     }
 
-    public void setPhone(String phone) {
+    public void setPhone(long phone) {
         this.phone = phone;
     }
 
@@ -55,5 +60,19 @@ public class Customer {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public long getRegistrationDate() {
+        return registrationDate;
+    }
+
+    public String getCustomerType() {
+        return customerType;
+    }
+
+    @Override
+    public String toString() {
+        return this.customerId + " " + this.name + " " + this.email + " " + this.phone + " " + this.address + " "
+                + this.registrationDate + " " + this.customerType;
     }
 }
