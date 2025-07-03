@@ -1,12 +1,14 @@
 package model;
 
+import common.PaymentTerms;
+
 public class CorporateCustomer extends Customer {
     private long creditLimit;
-    private String paymentTerms;
+    private PaymentTerms paymentTerms;
     private boolean taxExemptionStatus;
 
     public CorporateCustomer(int customerId, String name, String email, long phone, String address,
-            long registrationDate, long creditLimit, String paymentTerms, boolean taxExemptionStatus) {
+            long registrationDate, long creditLimit, PaymentTerms paymentTerms, boolean taxExemptionStatus) {
         super(customerId, name, email, phone, address, registrationDate, "Corporate");
         this.creditLimit = creditLimit;
         this.paymentTerms = paymentTerms;
@@ -21,11 +23,11 @@ public class CorporateCustomer extends Customer {
         this.creditLimit = creditLimit;
     }
 
-    public String getPaymentTerms() {
+    public PaymentTerms getPaymentTerms() {
         return paymentTerms;
     }
 
-    public void setPaymentTerms(String paymentTerms) {
+    public void setPaymentTerms(PaymentTerms paymentTerms) {
         this.paymentTerms = paymentTerms;
     }
 

@@ -3,12 +3,14 @@ package main;
 import java.util.Scanner;
 
 import service.CustomerService;
+import service.InvoiceService;
 import service.ProductService;
 
 public class InvoiceManagement {
     Scanner scn = new Scanner(System.in);
     ProductService productService = new ProductService(scn);
     CustomerService customerService = new CustomerService(scn);
+    InvoiceService invoiceService = new InvoiceService(scn, customerService, productService);
 
     protected void setup() {
         productService.loadProducts();
@@ -31,7 +33,10 @@ public class InvoiceManagement {
             System.out.println("10.Search Customer by ID");
             System.out.println("11.Search Customer by Name");
             System.out.println("12.Search Customer by Email");
-            System.out.println("13.Exit");
+
+            // Invoice related options
+            System.out.println("13.Create Invoice");
+            System.out.println("14.Exit");
             System.out.println("=======================================================");
 
             String choice = scn.nextLine();
@@ -75,6 +80,9 @@ public class InvoiceManagement {
                     customerService.searchCustomerByEmail();
                     break;
                 case "13":
+                    invoiceService.createInvoice();
+                    break;
+                case "14":
                     System.out.println("Thank you for using the Expense Tracker. Goodbye!");
                     System.exit(0);
                     break;

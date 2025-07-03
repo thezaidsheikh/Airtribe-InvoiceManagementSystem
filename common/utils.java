@@ -26,7 +26,7 @@ public class utils {
     }
 
     public static String generateInvoiceNumber() {
-        return "INV-" + generateId(10);
+        return "INV-" + getEpochTime();
     }
 
     public static String generateCustomerNumber() {

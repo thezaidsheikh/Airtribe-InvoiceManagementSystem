@@ -5,12 +5,11 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
-import common.ProductCategory;
+import common.PaymentTerms;
 import common.utils;
 import model.CorporateCustomer;
 import model.Customer;
 import model.PremiumCustomer;
-import model.Product;
 
 public class CustomerService {
     private List<Customer> customers = new ArrayList<>();
@@ -20,6 +19,7 @@ public class CustomerService {
         this.scanner = scanner;
     }
 
+    // Load customers from file on app startup
     public void loadCustomers() {
         this.customers = utils.readData("./db/customers.txt").map(line -> {
             String[] parts = line.split(" ");
@@ -35,44 +35,78 @@ public class CustomerService {
                 String paymentTerms = parts[8];
                 boolean taxExemptionStatus = Boolean.parseBoolean(parts[9]);
                 return new CorporateCustomer(customerId, name, email, phone, address, registrationDate, creditLimit,
-                        paymentTerms, taxExemptionStatus);
+                        PaymentTerms.valueOf(paymentTerms.toUpperCase()), taxExemptionStatus);
             } else {
                 return new PremiumCustomer(customerId, name, email, phone, address, registrationDate);
             }
         }).collect(Collectors.toList());
     }
 
+    // Add new Customer to the application
     public void addCustomer() {
         System.out.println("========================== ADD CUSTOMER =============================");
-        System.out.print("Enter Customer Name: ");
+        System.out.print("Enter Customer Name (mandatory) - (min 15 characters): ");
         String name = this.scanner.nextLine().split("\\s+")[0];
+        if (name.isEmpty() || name.length() > 15) {
+            System.out.println("Customer name is not valid");
+            return;
+        }
 
-        System.out.print("Enter Customer Contact: ");
+        System.out.print("Enter Customer Contact (mandatory) - (10 digits): ");
         long contact = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
+        if (String.valueOf(contact).length() != 10) {
+            System.out.println("Customer contact must be 10 digits");
+            return;
+        }
 
-        System.out.print("Enter Customer Email: ");
+        System.out.print("Enter Customer Email (mandatory) - (contains @): ");
         String email = this.scanner.nextLine().split("\\s+")[0];
+        if (email.isEmpty() || !email.contains("@")) {
+            System.out.println("Customer email is invalid");
+            return;
+        }
 
-        System.out.print("Enter Customer Address: ");
+        System.out.print("Enter Customer Address (mandatory) - (max 50 characters): ");
         String address = this.scanner.nextLine().split("\\s+")[0];
+        if (address.isEmpty() || address.length() > 50) {
+            System.out.println("Customer address cannot be empty");
+            return;
+        }
 
         System.out.println("Select the type of customer: \n1. Premium Customer\n2. Corporate Customer\n");
         String customerType = this.scanner.nextLine().split("\\s+")[0];
-        if (customerType.equals("2")) {
-            System.out.println("Enter the credit limit: ");
-            long creditLimit = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
-            System.out.println("Enter the payment terms: ");
-            String paymentTerms = this.scanner.nextLine().split("\\s+")[0];
-            System.out.println("Enter the tax exemption status: ");
-            boolean taxExemptionStatus = this.scanner.nextBoolean();
-            CorporateCustomer corporateCustomer = new CorporateCustomer(utils.generateId(4), name, email, contact,
-                    address, utils.getEpochTime(), creditLimit, paymentTerms, taxExemptionStatus);
-            this.customers.add(corporateCustomer);
-        } else {
+        if (customerType.equals("1")) {
             PremiumCustomer premiumCustomer = new PremiumCustomer(utils.generateId(4), name, email, contact,
                     address, utils.getEpochTime());
             this.customers.add(premiumCustomer);
+        } else if (customerType.equals("2")) {
+            System.out.print("Enter the credit limit (mandatory) - (greater than 0): ");
+            long creditLimit = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
+            if (creditLimit <= 0) {
+                System.out.println("Credit limit is not valid");
+                return;
+            }
+
+            System.out.print("Enter the payment terms (mandatory) - (NET_30, NET_60, NET_90): ");
+            String paymentTerms = this.scanner.nextLine().split("\\s+")[0];
+            if (!paymentTerms.equals("NET_30") && !paymentTerms.equals("NET_60") && !paymentTerms.equals("NET_90")) {
+                System.out.println("Payment terms is not valid");
+                return;
+            }
+
+            System.out.print("Enter the tax exemption status: ");
+            boolean taxExemptionStatus = this.scanner.nextBoolean();
+
+            PaymentTerms paymentTermsEnum = PaymentTerms.valueOf(paymentTerms.toUpperCase());
+
+            CorporateCustomer corporateCustomer = new CorporateCustomer(utils.generateId(4), name, email, contact,
+                    address, utils.getEpochTime(), creditLimit, paymentTermsEnum, taxExemptionStatus);
+            this.customers.add(corporateCustomer);
+        } else {
+            System.out.println("Invalid customer type");
+            return;
         }
+
         utils.saveData("./db/customers.txt", this.customers);
         System.out.println("===== CUSTOMER ADDED SUCCESSFULLY ====================");
         System.out.println("=====================================");
@@ -132,7 +166,7 @@ public class CustomerService {
                         utils.convertEpochToDateTime(corporateCustomer.getRegistrationDate()).length());
                 colWidths[6] = Math.max(colWidths[6], corporateCustomer.getCustomerType().length());
                 colWidths[9] = Math.max(colWidths[9], String.valueOf(corporateCustomer.getCreditLimit()).length());
-                colWidths[10] = Math.max(colWidths[10], corporateCustomer.getPaymentTerms().length());
+                colWidths[10] = Math.max(colWidths[10], corporateCustomer.getPaymentTerms().toString().length());
                 colWidths[11] = Math.max(colWidths[11],
                         String.valueOf(corporateCustomer.getTaxExemptionStatus()).length());
             }
@@ -176,7 +210,7 @@ public class CustomerService {
                         "-",
                         "-",
                         String.valueOf(corporateCustomer.getCreditLimit()),
-                        corporateCustomer.getPaymentTerms(),
+                        corporateCustomer.getPaymentTerms().toString(),
                         String.valueOf(corporateCustomer.getTaxExemptionStatus()));
             }
         }
@@ -223,5 +257,9 @@ public class CustomerService {
             return;
         }
         showCustomerList(customer);
+    }
+
+    public Customer getCustomerById(int customerId) {
+        return this.customers.stream().filter(p -> p.getCustomerId() == customerId).findFirst().orElse(null);
     }
 }

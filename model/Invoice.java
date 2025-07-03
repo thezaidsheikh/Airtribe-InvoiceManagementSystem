@@ -1,7 +1,5 @@
 package model;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,15 +12,16 @@ public class Invoice {
     private String invoiceId;
     private int customerId;
     private String customerName;
-    private long invoiceDate;
-    private long dueDate;
+    private Customer customerDetail;
+    private long invoiceDate = utils.getEpochTime();
+    private long dueDate = utils.getEpochTime() + 30 * 24 * 60 * 60; // Default 30 days payment term
     private List<InvoiceItem> items;
     private long subtotal;
     private long taxAmount;
     private long discountAmount;
-    private long totalAmount;
+    private long finalAmount;
     private PaymentMethod paymentMethod;
-    private InvoiceStatus status;
+    private InvoiceStatus status = InvoiceStatus.DRAFT;
     private String notes;
 
     public Invoice() {
@@ -31,14 +30,18 @@ public class Invoice {
         this.status = InvoiceStatus.DRAFT;
     }
 
-    public Invoice(String invoiceId, int customerId, String customerName) {
+    public Invoice(String invoiceId, Customer customerDetail, List<InvoiceItem> items, long invoiceDate,
+            long dueDate, InvoiceStatus status, PaymentMethod paymentMethod, String notes) {
         this.invoiceId = invoiceId;
-        this.customerId = customerId;
-        this.customerName = customerName;
-        this.items = new ArrayList<>();
-        this.invoiceDate = utils.getEpochTime();
-        this.dueDate = utils.getEpochTime() + 30 * 24 * 60 * 60; // Default 30 days payment term
-        this.status = InvoiceStatus.DRAFT;
+        this.customerId = customerDetail.getCustomerId();
+        this.customerName = customerDetail.getName();
+        this.items = items;
+        this.invoiceDate = invoiceDate;
+        this.dueDate = dueDate;
+        this.status = status;
+        this.paymentMethod = paymentMethod;
+        this.notes = notes;
+        this.customerDetail = customerDetail;
     }
 
     // Getters and Setters
@@ -114,8 +117,12 @@ public class Invoice {
         return discountAmount;
     }
 
-    public long getTotalAmount() {
-        return totalAmount;
+    public long getFinalAmount() {
+        this.calculateTotals();
+        // if(this.customerDetail instanceof PremiumCustomer) {
+        // this.finalAmount = this.finalAmount * 0.9;
+        // }
+        return this.finalAmount;
     }
 
     public PaymentMethod getPaymentMethod() {
@@ -148,70 +155,13 @@ public class Invoice {
         this.taxAmount = 0;
         this.discountAmount = 0;
 
-        for (InvoiceItem item : items) {
-            this.subtotal += item.priceAfterTaxAndDiscount();
-            this.taxAmount += item.getTaxAmount();
-            this.discountAmount += item.getSeasonalDiscountAmount();
+        for (InvoiceItem item : this.items) {
+            System.out.println("Items: " + item.getProductDetail().toString());
+            this.subtotal += item.getProductDetail().getBasePrice();
+            this.taxAmount += item.getProductDetail().getTaxAmount();
+            this.discountAmount += item.getProductDetail().getSeasonalDiscountAmount();
         }
 
-        this.totalAmount = this.subtotal + this.taxAmount - this.discountAmount;
+        this.finalAmount = this.subtotal + this.taxAmount - this.discountAmount;
     }
-
-    // public String getFormattedInvoiceDate() {
-    // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd
-    // HH:mm:ss");
-    // return utils.formatDate(invoiceDate);
-    // }
-
-    // public String getFormattedDueDate() {
-    // DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-    // return dueDate.format(formatter);
-    // }
-
-    // @Override
-    // public String toString() {
-    // return String.format("Invoice #%d | Customer: %s | Date: %s | Total: $%.2f |
-    // Status: %s",
-    // invoiceId, customerName, getFormattedInvoiceDate(), totalAmount / 100.0,
-    // status);
-    // }
-
-    // Detailed invoice display
-    // public String getDetailedInvoice() {
-    // StringBuilder sb = new StringBuilder();
-    // sb.append("===============================================\n");
-    // sb.append(" INVOICE\n");
-    // sb.append("===============================================\n");
-    // sb.append(String.format("Invoice #: %d\n", invoiceId));
-    // sb.append(String.format("Customer: %s (ID: %d)\n", customerName,
-    // customerId));
-    // sb.append(String.format("Invoice Date: %s\n", getFormattedInvoiceDate()));
-    // sb.append(String.format("Due Date: %s\n", getFormattedDueDate()));
-    // sb.append(String.format("Status: %s\n", status));
-    // sb.append("===============================================\n");
-    // sb.append("ITEMS:\n");
-    // sb.append("-----------------------------------------------\n");
-
-    // for (int i = 0; i < items.size(); i++) {
-    // InvoiceItem item = items.get(i);
-    // sb.append(String.format("%d. %s\n", i + 1, item.toString()));
-    // }
-
-    // sb.append("-----------------------------------------------\n");
-    // sb.append(String.format("Subtotal: $%.2f\n", subtotal / 100.0));
-    // sb.append(String.format("Tax: $%.2f\n", taxAmount / 100.0));
-    // sb.append(String.format("Discount: -$%.2f\n", discountAmount / 100.0));
-    // sb.append(String.format("TOTAL: $%.2f\n", totalAmount / 100.0));
-    // sb.append("===============================================\n");
-
-    // if (paymentMethod != null) {
-    // sb.append(String.format("Payment Method: %s\n", paymentMethod));
-    // }
-
-    // if (notes != null && !notes.isEmpty()) {
-    // sb.append(String.format("Notes: %s\n", notes));
-    // }
-
-    // return sb.toString();
-    // }
 }

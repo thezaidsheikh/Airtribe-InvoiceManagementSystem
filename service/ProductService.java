@@ -8,11 +8,8 @@ import java.util.stream.IntStream;
 
 import common.ProductCategory;
 import common.utils;
-import model.CorporateCustomer;
-import model.Customer;
 import model.DigitalService;
 import model.PhysicalProduct;
-import model.PremiumCustomer;
 import model.Product;
 
 public class ProductService {
@@ -356,5 +353,9 @@ public class ProductService {
         this.products.set(productIndex, product);
         utils.saveData("./db/products.txt", this.products);
         System.out.println("Product updated successfully");
+    }
+
+    public Product getProductById(int productId) {
+        return this.products.stream().filter(p -> p.getProductId() == productId).findFirst().orElse(null);
     }
 }
