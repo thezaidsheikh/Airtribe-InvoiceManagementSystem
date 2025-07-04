@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -86,5 +87,16 @@ public class utils {
                 Instant.ofEpochMilli(number),
                 ZoneId.systemDefault());
         return dateTime.toString();
+    }
+
+    public static long getDueDate(long invoiceDate, PaymentTerms paymentTerms) {
+        String days = paymentTerms.toString().split("_")[1];
+        return Instant.ofEpochMilli(invoiceDate)
+                .plus(Duration.ofDays(Long.parseLong(days)))
+                .toEpochMilli();
+    }
+
+    public static long getDiscountAmount(long totalAmount, int discountPercentage) {
+        return (totalAmount * discountPercentage) / 100;
     }
 }

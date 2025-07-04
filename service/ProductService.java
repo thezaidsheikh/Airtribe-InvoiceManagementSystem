@@ -47,8 +47,12 @@ public class ProductService {
     public void addProduct() {
         System.out.println("========================== ADD PRODUCT =============================");
 
-        System.out.print("Enter Product Name: ");
+        System.out.print("Enter Product Name (mandatory - max 15 characters): ");
         String name = this.scanner.nextLine().split("\\s+")[0];
+        while (name.isEmpty() || name.length() > 15) {
+            System.out.println("Product name is invalid. Please try again.");
+            name = this.scanner.nextLine().split("\\s+")[0];
+        }
         String cat;
         while (true) {
             System.out.print("Enter Product Category (Electronics, Clothing, Books, Food): ");
@@ -61,30 +65,62 @@ public class ProductService {
             break;
         }
 
-        System.out.print("ENTER THE BASE PRICE: ");
+        System.out.print("Enter Base Price (mandatory): ");
         long basePrice = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
+        if (basePrice <= 0) {
+            System.out.println("Base price is invalid. Please try again.");
+            return;
+        }
 
-        System.out.print("ENTER THE TAX RATE: ");
+        System.out.print("Enter Tax Rate (mandatory): ");
         int taxRate = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        if (taxRate < 0) {
+            System.out.println("Tax rate is invalid. Please try again.");
+            return;
+        }
 
-        System.out.print("ENTER THE SEASONAL DISCOUNT: ");
+        System.out.print("Enter Seasonal Discount (mandatory): ");
         int seasonalDiscount = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        if (seasonalDiscount < 0) {
+            System.out.println("Seasonal discount is invalid. Please try again.");
+            return;
+        }
 
         System.out.println("Select the type of product: \n1. Physical Product\n2. Digital Service\n");
         String productType = this.scanner.nextLine().split("\\s+")[0];
+        while (!productType.equals("1") && !productType.equals("2")) {
+            System.out.println("Invalid product type. Please try again.");
+            return;
+        }
 
         if (productType.equals("1")) {
-            System.out.print("ENTER THE STOCK QUANTITY: ");
+            System.out.print("Enter Stock Quantity (mandatory): ");
             int stockQuantity = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+            if (stockQuantity <= 0) {
+                System.out.println("Stock quantity is invalid. Please try again.");
+                return;
+            }
 
-            System.out.print("ENTER THE REORDER LEVEL: ");
+            System.out.print("Enter Reorder Level (mandatory): ");
             int reorderLevel = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+            if (reorderLevel <= 0) {
+                System.out.println("Reorder level is invalid. Please try again.");
+                return;
+            }
 
-            System.out.print("ENTER THE SUPPLIER Name: ");
+            System.out.print("Enter Supplier Name (mandatory): ");
             String supplierName = this.scanner.nextLine().split("\\s+")[0];
+            if (supplierName.isEmpty()) {
+                System.out.println("Supplier name is invalid. Please try again.");
+                return;
+            }
 
-            System.out.print("ENTER THE SUPPLIER Contact: ");
+            System.out.print("Enter Supplier Contact (mandatory - 10 digits): ");
             long supplierContact = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
+            if (String.valueOf(supplierContact).length() != 10) {
+                System.out.println("Supplier contact must be 10 digits");
+                return;
+            }
 
             PhysicalProduct physicalProduct = new PhysicalProduct(utils.generateId(4), name,
                     ProductCategory.valueOf(cat),
@@ -265,7 +301,7 @@ public class ProductService {
     public void updateProduct() {
         System.out.println("========================== UPDATE PRODUCT =============================");
 
-        System.out.print("Enter Product ID: ");
+        System.out.print("Enter Product ID (mandatory): ");
         int productId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
         int productIndex = IntStream.range(0, this.products.size())
                 .filter(i -> this.products.get(i).getProductId() == productId)
@@ -277,8 +313,13 @@ public class ProductService {
         }
         Product product = this.products.get(productIndex);
 
-        System.out.print("Enter the new name (current name: " + product.getName() + ") (press enter to skip): ");
+        System.out.print("Enter the new name (current name: " + product.getName()
+                + ") (press enter to skip - min 15 characters): ");
         String name = this.scanner.nextLine().split("\\s+")[0];
+        if (!name.isEmpty() && name.length() < 15) {
+            System.out.println("Product name is not valid");
+            return;
+        }
         if (!name.isEmpty()) {
             product.setName(name);
         }
@@ -303,12 +344,20 @@ public class ProductService {
         System.out.print(
                 "Enter the new base price (current price: " + product.getBasePrice() + ") (press enter to skip): ");
         String basePrice = this.scanner.nextLine().split("\\s+")[0];
+        if (!basePrice.isEmpty() && Long.parseLong(basePrice) <= 0) {
+            System.out.println("Base price is invalid. Please try again.");
+            return;
+        }
         if (!basePrice.isEmpty()) {
             product.setBasePrice(Long.parseLong(basePrice));
         }
 
         System.out.print("Enter the new tax rate (current rate: " + product.getTaxRate() + ") (press enter to skip): ");
         String taxRate = this.scanner.nextLine().split("\\s+")[0];
+        if (!taxRate.isEmpty() && Integer.parseInt(taxRate) < 0) {
+            System.out.println("Tax rate is invalid. Please try again.");
+            return;
+        }
         if (!taxRate.isEmpty()) {
             product.setTaxRate(Integer.parseInt(taxRate));
         }
@@ -316,6 +365,10 @@ public class ProductService {
         System.out.print("Enter the new seasonal discount (current discount: " + product.getSeasonalDiscount()
                 + ") (press enter to skip): ");
         String seasonalDiscount = this.scanner.nextLine().split("\\s+")[0];
+        if (!seasonalDiscount.isEmpty() && Integer.parseInt(seasonalDiscount) < 0) {
+            System.out.println("Seasonal discount is invalid. Please try again.");
+            return;
+        }
         if (!seasonalDiscount.isEmpty()) {
             product.setSeasonalDiscount(Integer.parseInt(seasonalDiscount));
         }
@@ -325,6 +378,10 @@ public class ProductService {
             System.out.print("Enter the new stock quantity (current quantity: " + physicalProduct.getStockQuantity()
                     + ") (press enter to skip): ");
             String stockQuantity = this.scanner.nextLine().split("\\s+")[0];
+            if (!stockQuantity.isEmpty() && Integer.parseInt(stockQuantity) < 0) {
+                System.out.println("Stock quantity is invalid. Please try again.");
+                return;
+            }
             if (!stockQuantity.isEmpty()) {
                 physicalProduct.setStockQuantity(Integer.parseInt(stockQuantity));
             }
@@ -332,6 +389,10 @@ public class ProductService {
             System.out.print("Enter the new reorder level (current level: " + physicalProduct.getReorderLevel()
                     + ") (press enter to skip): ");
             String reorderLevel = this.scanner.nextLine().split("\\s+")[0];
+            if (!reorderLevel.isEmpty() && Integer.parseInt(reorderLevel) < 0) {
+                System.out.println("Reorder level is invalid. Please try again.");
+                return;
+            }
             if (!reorderLevel.isEmpty()) {
                 physicalProduct.setReorderLevel(Integer.parseInt(reorderLevel));
             }
@@ -339,6 +400,10 @@ public class ProductService {
             System.out.print("Enter the new supplier name (current name: " + physicalProduct.getSupplierName()
                     + ") (press enter to skip): ");
             String supplierName = this.scanner.nextLine().split("\\s+")[0];
+            if (!supplierName.isEmpty() && supplierName.length() > 15) {
+                System.out.println("Supplier name is invalid. Please try again.");
+                return;
+            }
             if (!supplierName.isEmpty()) {
                 physicalProduct.setSupplierName(supplierName);
             }
@@ -346,6 +411,10 @@ public class ProductService {
             System.out.print("Enter the new supplier contact (current contact: " + physicalProduct.getSupplierContact()
                     + ") (press enter to skip): ");
             String supplierContact = this.scanner.nextLine().split("\\s+")[0];
+            if (!supplierContact.isEmpty() && String.valueOf(supplierContact).length() != 10) {
+                System.out.println("Supplier contact must be 10 digits");
+                return;
+            }
             if (!supplierContact.isEmpty()) {
                 physicalProduct.setSupplierContact(Long.parseLong(supplierContact));
             }

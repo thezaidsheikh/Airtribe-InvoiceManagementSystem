@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import common.PaymentTerms;
 import common.utils;
@@ -30,14 +31,18 @@ public class CustomerService {
             String address = parts[4];
             long registrationDate = Long.parseLong(parts[5]);
             String customerType = parts[6];
-            if (customerType.equals("CorporateCustomer")) {
+            if (customerType.equals("Corporate")) {
                 long creditLimit = Long.parseLong(parts[7]);
                 String paymentTerms = parts[8];
                 boolean taxExemptionStatus = Boolean.parseBoolean(parts[9]);
                 return new CorporateCustomer(customerId, name, email, phone, address, registrationDate, creditLimit,
                         PaymentTerms.valueOf(paymentTerms.toUpperCase()), taxExemptionStatus);
-            } else {
+            } else if (customerType.equals("Premium")) {
                 return new PremiumCustomer(customerId, name, email, phone, address, registrationDate);
+            } else if (customerType.equals("Regular")) {
+                return new Customer(customerId, name, email, phone, address, registrationDate, "Regular");
+            } else {
+                return null;
             }
         }).collect(Collectors.toList());
     }
@@ -73,7 +78,8 @@ public class CustomerService {
             return;
         }
 
-        System.out.println("Select the type of customer: \n1. Premium Customer\n2. Corporate Customer\n");
+        System.out.println(
+                "Select the type of customer: \n1. Premium Customer\n2. Corporate Customer\n3. Regular Customer");
         String customerType = this.scanner.nextLine().split("\\s+")[0];
         if (customerType.equals("1")) {
             PremiumCustomer premiumCustomer = new PremiumCustomer(utils.generateId(4), name, email, contact,
@@ -102,6 +108,10 @@ public class CustomerService {
             CorporateCustomer corporateCustomer = new CorporateCustomer(utils.generateId(4), name, email, contact,
                     address, utils.getEpochTime(), creditLimit, paymentTermsEnum, taxExemptionStatus);
             this.customers.add(corporateCustomer);
+        } else if (customerType.equals("3")) {
+            Customer customer = new Customer(utils.generateId(4), name, email, contact,
+                    address, utils.getEpochTime(), "Regular");
+            this.customers.add(customer);
         } else {
             System.out.println("Invalid customer type");
             return;
@@ -155,7 +165,7 @@ public class CustomerService {
                 colWidths[6] = Math.max(colWidths[6], premiumCustomer.getCustomerType().length());
                 colWidths[7] = Math.max(colWidths[7], String.valueOf(premiumCustomer.getDiscountPercentage()).length());
                 colWidths[8] = Math.max(colWidths[8], String.valueOf(premiumCustomer.getLoyaltyPoints()).length());
-            } else {
+            } else if (customer instanceof CorporateCustomer) {
                 CorporateCustomer corporateCustomer = (CorporateCustomer) customer;
                 colWidths[0] = Math.max(colWidths[0], String.valueOf(corporateCustomer.getCustomerId()).length());
                 colWidths[1] = Math.max(colWidths[1], corporateCustomer.getName().length());
@@ -169,6 +179,16 @@ public class CustomerService {
                 colWidths[10] = Math.max(colWidths[10], corporateCustomer.getPaymentTerms().toString().length());
                 colWidths[11] = Math.max(colWidths[11],
                         String.valueOf(corporateCustomer.getTaxExemptionStatus()).length());
+            } else {
+                Customer regularCustomer = (Customer) customer;
+                colWidths[0] = Math.max(colWidths[0], String.valueOf(regularCustomer.getCustomerId()).length());
+                colWidths[1] = Math.max(colWidths[1], regularCustomer.getName().length());
+                colWidths[2] = Math.max(colWidths[2], regularCustomer.getEmail().length());
+                colWidths[3] = Math.max(colWidths[3], String.valueOf(regularCustomer.getPhone()).length());
+                colWidths[4] = Math.max(colWidths[4], regularCustomer.getAddress().length());
+                colWidths[5] = Math.max(colWidths[5],
+                        utils.convertEpochToDateTime(regularCustomer.getRegistrationDate()).length());
+                colWidths[6] = Math.max(colWidths[6], regularCustomer.getCustomerType().length());
             }
         }
 
@@ -197,7 +217,7 @@ public class CustomerService {
                         String.valueOf(premiumCustomer.getDiscountPercentage()),
                         String.valueOf(premiumCustomer.getLoyaltyPoints()),
                         "-", "-", "-");
-            } else {
+            } else if (customer instanceof CorporateCustomer) {
                 CorporateCustomer corporateCustomer = (CorporateCustomer) customer;
                 System.out.printf(format,
                         String.valueOf(corporateCustomer.getCustomerId()),
@@ -212,6 +232,17 @@ public class CustomerService {
                         String.valueOf(corporateCustomer.getCreditLimit()),
                         corporateCustomer.getPaymentTerms().toString(),
                         String.valueOf(corporateCustomer.getTaxExemptionStatus()));
+            } else {
+                Customer regularCustomer = (Customer) customer;
+                System.out.printf(format,
+                        String.valueOf(regularCustomer.getCustomerId()),
+                        regularCustomer.getName(),
+                        regularCustomer.getEmail(),
+                        String.valueOf(regularCustomer.getPhone()),
+                        regularCustomer.getAddress(),
+                        utils.convertEpochToDateTime(regularCustomer.getRegistrationDate()),
+                        regularCustomer.getCustomerType(),
+                        "-", "-", "-", "-", "-");
             }
         }
         System.out.println("\n===================================== END CUSTOMER LIST =============================\n");
@@ -261,5 +292,71 @@ public class CustomerService {
 
     public Customer getCustomerById(int customerId) {
         return this.customers.stream().filter(p -> p.getCustomerId() == customerId).findFirst().orElse(null);
+    }
+
+    public void updateCustomer() {
+        System.out.println("========================== UPDATE CUSTOMER =============================");
+
+        System.out.print("Enter Customer ID: ");
+        int customerId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        int customerIndex = IntStream.range(0, this.customers.size())
+                .filter(i -> this.customers.get(i).getCustomerId() == customerId)
+                .findFirst().orElse(-1);
+        if (customerIndex == -1) {
+            System.out.println("Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        Customer customer = this.customers.get(customerIndex);
+
+        System.out.print("Enter the new name (current name: " + customer.getName()
+                + ") (press enter to skip - min 15 characters): ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+        if (!name.isEmpty() && name.length() > 15) {
+            System.out.println("Customer name is not valid");
+            return;
+        }
+        if (!name.isEmpty()) {
+            customer.setName(name);
+        }
+
+        System.out.print("Enter the new email (current email: " + customer.getEmail()
+                + ") (press enter to skip - contains @): ");
+        String email = this.scanner.nextLine().split("\\s+")[0];
+        if (!email.isEmpty() && !email.contains("@")) {
+            System.out.println("Customer email is invalid");
+            return;
+        }
+        if (!email.isEmpty()) {
+            customer.setEmail(email);
+        }
+
+        System.out.print(
+                "Enter the new phone (current phone: " + customer.getPhone() + ") (press enter to skip - 10 digits): ");
+        String phone = this.scanner.nextLine().split("\\s+")[0];
+        if (!phone.isEmpty() && phone.length() != 10) {
+            System.out.println("Customer phone is invalid");
+            return;
+        }
+        if (!phone.isEmpty()) {
+            customer.setPhone(Long.parseLong(phone));
+        }
+
+        System.out.print(
+                "Enter the new address (current address: " + customer.getAddress()
+                        + ") (press enter to skip - max 50 characters): ");
+        String address = this.scanner.nextLine().split("\\s+")[0];
+        if (!address.isEmpty() && address.length() > 50) {
+            System.out.println("Customer address is invalid");
+            return;
+        }
+        if (!address.isEmpty()) {
+            customer.setAddress(address);
+        }
+
+        this.customers.set(customerIndex, customer);
+        utils.saveData("./db/customers.txt", this.customers);
+        System.out.println("===== CUSTOMER UPDATED SUCCESSFULLY ====================");
+        System.out.println("=====================================");
     }
 }

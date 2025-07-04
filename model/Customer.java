@@ -15,7 +15,7 @@ public class Customer {
     public Customer() {
     }
 
-    protected Customer(int customerId, String name, String email, long phone, String address, long registrationDate,
+    public Customer(int customerId, String name, String email, long phone, String address, long registrationDate,
             String customerType) {
         this.customerId = customerId;
         this.name = name;

@@ -5,6 +5,7 @@ import java.util.List;
 
 import common.InvoiceStatus;
 import common.PaymentMethod;
+import common.PaymentTerms;
 import common.utils;
 
 public class Invoice {
@@ -14,7 +15,7 @@ public class Invoice {
     private String customerName;
     private Customer customerDetail;
     private long invoiceDate = utils.getEpochTime();
-    private long dueDate = utils.getEpochTime() + 30 * 24 * 60 * 60; // Default 30 days payment term
+    private long dueDate = utils.getDueDate(utils.getEpochTime(), PaymentTerms.NET_30);
     private List<InvoiceItem> items;
     private long subtotal;
     private long taxAmount;
@@ -22,7 +23,6 @@ public class Invoice {
     private long finalAmount;
     private PaymentMethod paymentMethod;
     private InvoiceStatus status = InvoiceStatus.DRAFT;
-    private String notes;
 
     public Invoice() {
         this.items = new ArrayList<>();
@@ -30,18 +30,13 @@ public class Invoice {
         this.status = InvoiceStatus.DRAFT;
     }
 
-    public Invoice(String invoiceId, Customer customerDetail, List<InvoiceItem> items, long invoiceDate,
-            long dueDate, InvoiceStatus status, PaymentMethod paymentMethod, String notes) {
+    public Invoice(String invoiceId, Customer customerDetail, List<InvoiceItem> items) {
         this.invoiceId = invoiceId;
         this.customerId = customerDetail.getCustomerId();
         this.customerName = customerDetail.getName();
         this.items = items;
-        this.invoiceDate = invoiceDate;
-        this.dueDate = dueDate;
-        this.status = status;
-        this.paymentMethod = paymentMethod;
-        this.notes = notes;
         this.customerDetail = customerDetail;
+        this.calculateTotals();
     }
 
     // Getters and Setters
@@ -106,23 +101,31 @@ public class Invoice {
     }
 
     public long getSubtotal() {
-        return subtotal;
+        return this.subtotal;
     }
 
     public long getTaxAmount() {
-        return taxAmount;
+        return this.taxAmount;
+    }
+
+    public void setTaxAmount(long taxAmount) {
+        this.taxAmount = taxAmount;
     }
 
     public long getDiscountAmount() {
-        return discountAmount;
+        return this.discountAmount;
+    }
+
+    public void setDiscountAmount(long discountAmount) {
+        this.discountAmount = discountAmount;
     }
 
     public long getFinalAmount() {
-        this.calculateTotals();
-        // if(this.customerDetail instanceof PremiumCustomer) {
-        // this.finalAmount = this.finalAmount * 0.9;
-        // }
         return this.finalAmount;
+    }
+
+    public void setFinalAmount(long finalAmount) {
+        this.finalAmount = finalAmount;
     }
 
     public PaymentMethod getPaymentMethod() {
@@ -141,14 +144,6 @@ public class Invoice {
         this.status = status;
     }
 
-    public String getNotes() {
-        return notes;
-    }
-
-    public void setNotes(String notes) {
-        this.notes = notes;
-    }
-
     // Calculate totals based on items
     public void calculateTotals() {
         this.subtotal = 0;
@@ -156,12 +151,20 @@ public class Invoice {
         this.discountAmount = 0;
 
         for (InvoiceItem item : this.items) {
-            System.out.println("Items: " + item.getProductDetail().toString());
-            this.subtotal += item.getProductDetail().getBasePrice();
-            this.taxAmount += item.getProductDetail().getTaxAmount();
-            this.discountAmount += item.getProductDetail().getSeasonalDiscountAmount();
+            this.subtotal += (item.getProductDetail().getBasePrice() * item.getQuantity());
+            this.taxAmount += (item.getProductDetail().getTaxAmount() * item.getQuantity());
+            this.discountAmount += (item.getProductDetail().getSeasonalDiscountAmount() * item.getQuantity());
         }
 
         this.finalAmount = this.subtotal + this.taxAmount - this.discountAmount;
+    }
+
+    @Override
+    public String toString() {
+        return this.getInvoiceId() + " " + this.getCustomerId() + " " + this.getCustomerName() + " "
+                + this.getInvoiceDate()
+                + " " + this.getDueDate() + " " + this.getItems() + " " + this.getSubtotal()
+                + " " + this.getTaxAmount() + " " + this.getDiscountAmount() + " " + this.getFinalAmount() + " "
+                + this.getPaymentMethod() + " " + this.getStatus();
     }
 }

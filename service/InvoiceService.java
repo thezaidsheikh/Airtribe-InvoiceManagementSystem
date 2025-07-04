@@ -40,7 +40,9 @@ public class InvoiceService {
             return;
         }
 
+        long totalInvoiceItemPrice = 0;
         System.out.println("Please add at least one product to create an invoice");
+
         while (true) {
             if (this.invoiceItems.size() > 0) {
                 System.out.println("You have added " + this.invoiceItems.size()
@@ -67,15 +69,70 @@ public class InvoiceService {
                 System.out.println("=====================================");
                 continue;
             }
-            this.invoiceItems.add(new InvoiceItem(Integer.parseInt(productId), quantity, this.productDetail));
+            long price = this.productDetail.priceAfterTaxAndDiscount() * quantity;
+            totalInvoiceItemPrice += price;
+            InvoiceItem invoiceItem = new InvoiceItem(Integer.parseInt(productId), quantity, price, this.productDetail);
+            this.invoiceItems.add(invoiceItem);
         }
-        this.invoice = new Invoice(utils.generateInvoiceNumber(), this.customerDetail,
-                this.invoiceItems, utils.getEpochTime(),
-                utils.getEpochTime() + 30 * 24 * 60 * 60,
-                InvoiceStatus.DRAFT, PaymentMethod.CASH, "");
-        System.out.println("Total Amount: " + this.invoice.getFinalAmount());
+        // System.out.println("Payment Method: \n1. CASH\n2. CREDIT CARD\n3. DEBIT
+        // CARD\n4. UPI\n5. NET BANKING\n");
+        // int paymentMethod = scanner.nextInt();
+        // if (paymentMethod > 5 || paymentMethod < 1) {
+        // System.out.println("Invalid payment method");
+        // System.out.println("=====================================");
+        // return;
+        // }
+
+        this.invoice = new Invoice(utils.generateInvoiceNumber(),
+                this.customerDetail,
+                this.invoiceItems);
+
+        System.out.println("Invoice Number: " + this.invoice.getInvoiceId());
+        System.out.println("Customer Name: " + this.invoice.getCustomerName());
+        System.out.println("Customer ID: " + this.invoice.getCustomerId());
+        System.out.println("Invoice Date: " + utils.convertEpochToDateTime(this.invoice.getInvoiceDate()));
+        System.out.println("Due Date: " + utils.convertEpochToDateTime(this.invoice.getDueDate()));
+        System.out.println("Payment Method: " + this.invoice.getPaymentMethod());
+        System.out.println("Status: " + this.invoice.getStatus());
+        System.out.println("Subtotal: " + this.invoice.getSubtotal());
+        System.out.println("Tax Amount: " + this.invoice.getTaxAmount());
+        System.out.println("Discount Amount: " + this.invoice.getDiscountAmount());
+        System.out.println("Final Amount: " + this.invoice.getFinalAmount());
+
+        if (this.customerDetail instanceof CorporateCustomer) {
+            CorporateCustomer corporateCustomer = (CorporateCustomer) this.customerDetail;
+            if (corporateCustomer.getCreditLimit() > totalInvoiceItemPrice) {
+                System.out.println("Credit limit exceeded");
+                System.out.println("=====================================");
+                return;
+            }
+            if (corporateCustomer.getTaxExemptionStatus()) {
+                long finalAmount = this.invoice.getFinalAmount() - this.invoice.getTaxAmount();
+                this.invoice.setTaxAmount(0);
+                this.invoice.setFinalAmount(finalAmount);
+            }
+            long dueDate = utils.getDueDate(this.invoice.getInvoiceDate(),
+                    corporateCustomer.getPaymentTerms());
+            this.invoice.setDueDate(dueDate);
+        } else if (this.customerDetail instanceof PremiumCustomer) {
+            PremiumCustomer premiumCustomer = (PremiumCustomer) this.customerDetail;
+            long discountAmount = utils.getDiscountAmount(this.invoice.getFinalAmount(),
+                    premiumCustomer.getDiscountPercentage());
+            long finalAmount = this.invoice.getFinalAmount() - discountAmount;
+            this.invoice.setDiscountAmount(this.invoice.getDiscountAmount() + discountAmount);
+            this.invoice.setFinalAmount(finalAmount);
+            this.invoice.setDueDate(0);
+        }
+
+        System.out.println("Subtotal: " + this.invoice.getSubtotal());
+        System.out.println("Discount Amount: " + this.invoice.getDiscountAmount());
+        System.out.println("Tax Amount: " + this.invoice.getTaxAmount());
+        System.out.println("Final Amount: " + this.invoice.getFinalAmount());
+        utils.saveData("./db/invoices.txt", List.of(this.invoice));
         System.out.println("===== INVOICE CREATED SUCCESSFULLY ====================");
         System.out.println("=====================================");
+        this.invoiceItems.clear();
+
     }
 
 }
