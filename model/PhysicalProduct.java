@@ -18,7 +18,7 @@ public class PhysicalProduct extends Product {
     }
 
     public int getStockQuantity() {
-        return stockQuantity;
+        return this.stockQuantity;
     }
 
     public void setStockQuantity(int stockQuantity) {
@@ -26,7 +26,7 @@ public class PhysicalProduct extends Product {
     }
 
     public int getReorderLevel() {
-        return reorderLevel;
+        return this.reorderLevel;
     }
 
     public void setReorderLevel(int reorderLevel) {
@@ -34,7 +34,7 @@ public class PhysicalProduct extends Product {
     }
 
     public String getSupplierName() {
-        return supplierName;
+        return this.supplierName;
     }
 
     public void setSupplierName(String supplierName) {
@@ -51,7 +51,7 @@ public class PhysicalProduct extends Product {
 
     // Inventory management
     public boolean isLowStock() {
-        return stockQuantity <= reorderLevel;
+        return this.stockQuantity <= this.reorderLevel;
     }
 
     @Override

@@ -1,4 +1,2 @@
-5650 Samsung_S25_Ultra Electronics 89999 18 0 PhysicalProduct 106198 89999 106198 500000 450 Samsung 6668887779
-8940 Iphone_16 Electronics 60000 18 25 PhysicalProduct 70800 45000 55800 56000 66 Apple 6664445557
-8630 Zomato_Gold Food 500 18 10 DigitalService 590 450 540
-2972 Spykar Clothing 3000 18 12 PhysicalProduct 3540 2640 3180 4000 13 Spykar 4567893456
+9772 Iphone_15 Electronics 40000 18 0 PhysicalProduct 47200 40000 47200 60000 2500 Apple 6785675676
+8529 Zomato_Gold Food 500 12 0 DigitalService 560 500 560

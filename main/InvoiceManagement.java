@@ -15,28 +15,30 @@ public class InvoiceManagement {
     protected void setup() {
         productService.loadProducts();
         customerService.loadCustomers();
-        System.out.println("=========WELCOME TO EXPENSE TRACKER=====================");
-        System.out.println("==========KINDLY SELECT THE OPTION======================");
+        invoiceService.loadInvoices();
+        System.out.println("=========WELCOME TO INVOICE MANAGEMENT SYSTEM=====================");
+        System.out.println("==========KINDLY SELECT THE OPTION======================\n");
         while (true) {
-            // Product related options
-            System.out.println("1.ADD PRODUCT");
-            System.out.println("2.VIEW ALL PRODUCTS");
-            System.out.println("3.UPDATE PRODUCT");
-            System.out.println("4.Search Product by ID");
-            System.out.println("5.Search Product by Name");
-            System.out.println("6.Search Product by Category");
-
             // Customer related options
-            System.out.println("7.Add Customer");
-            System.out.println("8.View All Customers");
-            System.out.println("9.Update Customer");
-            System.out.println("10.Search Customer by ID");
-            System.out.println("11.Search Customer by Name");
-            System.out.println("12.Search Customer by Email");
+            System.out.println("=== CUSTOMER MANAGEMENT ===\n");
+            System.out.println("1.Add Customer");
+            System.out.println("2.Update Customer");
+            System.out.println("3.Search Customer");
+            System.out.println("4.View Customer History\n");
+
+            // Product related options
+            System.out.println("=== PRODUCT MANAGEMENT ===\n");
+            System.out.println("5.Add Product");
+            System.out.println("6.Update Stock");
+            System.out.println("7.Search Product");
+            System.out.println("8.View low stock Items");
+            System.out.println("9.View All Products\n");
 
             // Invoice related options
-            System.out.println("13.Create Invoice");
-            System.out.println("14.Exit");
+            System.out.println("=== INVOICE MANAGEMENT ===\n");
+            System.out.println("10.Create Invoice");
+            System.out.println("11.View All Invoices");
+            System.out.println("12.Exit\n");
             System.out.println("=======================================================");
 
             String choice = scn.nextLine();
@@ -44,45 +46,39 @@ public class InvoiceManagement {
 
             switch (choice) {
                 case "1":
-                    productService.addProduct();
-                    break;
-                case "2":
-                    productService.viewAllProducts();
-                    break;
-                case "3":
-                    productService.updateProduct();
-                    break;
-                case "4":
-                    productService.searchProductByID();
-                    break;
-                case "5":
-                    productService.searchProductByName();
-                    break;
-                case "6":
-                    productService.searchProductByCategory();
-                    break;
-                case "7":
                     customerService.addCustomer();
                     break;
-                case "8":
+                case "2":
+                    customerService.updateCustomer();
+                    break;
+                case "3":
+                    customerService.searchCustomer();
+                    break;
+                case "4":
                     customerService.viewAllCustomers();
                     break;
-                // case "9":
-                // customerService.updateProduct();
-                // break;
+                case "5":
+                    productService.addProduct();
+                    break;
+                case "6":
+                    productService.updateStock();
+                    break;
+                case "7":
+                    productService.searchProduct();
+                    break;
+                case "8":
+                    productService.viewLowStockProducts();
+                    break;
+                case "9":
+                    productService.viewAllProducts();
+                    break;
                 case "10":
-                    customerService.searchCustomerByID();
-                    break;
-                case "11":
-                    customerService.searchCustomerByName();
-                    break;
-                case "12":
-                    customerService.searchCustomerByEmail();
-                    break;
-                case "13":
                     invoiceService.createInvoice();
                     break;
-                case "14":
+                case "11":
+                    invoiceService.viewAllInvoices();
+                    break;
+                case "12":
                     System.out.println("Thank you for using the Expense Tracker. Goodbye!");
                     System.exit(0);
                     break;

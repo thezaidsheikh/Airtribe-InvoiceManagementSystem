@@ -104,6 +104,10 @@ public class Invoice {
         return this.subtotal;
     }
 
+    public void setSubtotal(long subtotal) {
+        this.subtotal = subtotal;
+    }
+
     public long getTaxAmount() {
         return this.taxAmount;
     }

@@ -53,28 +53,28 @@ public class CustomerService {
         System.out.print("Enter Customer Name (mandatory) - (min 15 characters): ");
         String name = this.scanner.nextLine().split("\\s+")[0];
         if (name.isEmpty() || name.length() > 15) {
-            System.out.println("Customer name is not valid");
+            System.out.println("Error: Customer name is not valid");
             return;
         }
 
         System.out.print("Enter Customer Contact (mandatory) - (10 digits): ");
         long contact = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
         if (String.valueOf(contact).length() != 10) {
-            System.out.println("Customer contact must be 10 digits");
+            System.out.println("Error: Customer contact must be 10 digits");
             return;
         }
 
         System.out.print("Enter Customer Email (mandatory) - (contains @): ");
         String email = this.scanner.nextLine().split("\\s+")[0];
         if (email.isEmpty() || !email.contains("@")) {
-            System.out.println("Customer email is invalid");
+            System.out.println("Error: Customer email is invalid");
             return;
         }
 
         System.out.print("Enter Customer Address (mandatory) - (max 50 characters): ");
         String address = this.scanner.nextLine().split("\\s+")[0];
         if (address.isEmpty() || address.length() > 50) {
-            System.out.println("Customer address cannot be empty");
+            System.out.println("Error: Customer address cannot be empty");
             return;
         }
 
@@ -89,14 +89,14 @@ public class CustomerService {
             System.out.print("Enter the credit limit (mandatory) - (greater than 0): ");
             long creditLimit = Long.parseLong(this.scanner.nextLine().split("\\s+")[0]);
             if (creditLimit <= 0) {
-                System.out.println("Credit limit is not valid");
+                System.out.println("Error: Credit limit is not valid");
                 return;
             }
 
             System.out.print("Enter the payment terms (mandatory) - (NET_30, NET_60, NET_90): ");
             String paymentTerms = this.scanner.nextLine().split("\\s+")[0];
             if (!paymentTerms.equals("NET_30") && !paymentTerms.equals("NET_60") && !paymentTerms.equals("NET_90")) {
-                System.out.println("Payment terms is not valid");
+                System.out.println("Error: Payment terms is not valid");
                 return;
             }
 
@@ -113,13 +113,143 @@ public class CustomerService {
                     address, utils.getEpochTime(), "Regular");
             this.customers.add(customer);
         } else {
-            System.out.println("Invalid customer type");
+            System.out.println("Error: Invalid customer type");
             return;
         }
 
         utils.saveData("./db/customers.txt", this.customers);
         System.out.println("===== CUSTOMER ADDED SUCCESSFULLY ====================");
         System.out.println("=====================================");
+    }
+
+    public void updateCustomer() {
+        System.out.println("========================== UPDATE CUSTOMER =============================");
+
+        System.out.print("Enter Customer ID: ");
+        int customerId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        int customerIndex = IntStream.range(0, this.customers.size())
+                .filter(i -> this.customers.get(i).getCustomerId() == customerId)
+                .findFirst().orElse(-1);
+        if (customerIndex == -1) {
+            System.out.println("Error: Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        Customer customer = this.customers.get(customerIndex);
+
+        System.out.print("Enter the new name (current name: " + customer.getName()
+                + ") (press enter to skip - min 15 characters): ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+        if (!name.isEmpty() && name.length() > 15) {
+            System.out.println("Error: Customer name is not valid");
+            return;
+        }
+        if (!name.isEmpty()) {
+            customer.setName(name);
+        }
+
+        System.out.print("Enter the new email (current email: " + customer.getEmail()
+                + ") (press enter to skip - contains @): ");
+        String email = this.scanner.nextLine().split("\\s+")[0];
+        if (!email.isEmpty() && !email.contains("@")) {
+            System.out.println("Error: Customer email is invalid");
+            return;
+        }
+        if (!email.isEmpty()) {
+            customer.setEmail(email);
+        }
+
+        System.out.print(
+                "Enter the new phone (current phone: " + customer.getPhone() + ") (press enter to skip - 10 digits): ");
+        String phone = this.scanner.nextLine().split("\\s+")[0];
+        if (!phone.isEmpty() && phone.length() != 10) {
+            System.out.println("Error: Customer phone is invalid");
+            return;
+        }
+        if (!phone.isEmpty()) {
+            customer.setPhone(Long.parseLong(phone));
+        }
+
+        System.out.print(
+                "Enter the new address (current address: " + customer.getAddress()
+                        + ") (press enter to skip - max 50 characters): ");
+        String address = this.scanner.nextLine().split("\\s+")[0];
+        if (!address.isEmpty() && address.length() > 50) {
+            System.out.println("Error: Customer address is invalid");
+            return;
+        }
+        if (!address.isEmpty()) {
+            customer.setAddress(address);
+        }
+
+        this.customers.set(customerIndex, customer);
+        utils.saveData("./db/customers.txt", this.customers);
+        System.out.println("===== CUSTOMER UPDATED SUCCESSFULLY ====================");
+        System.out.println("=====================================");
+    }
+
+    public void searchCustomer() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.println("1.Search Customer by ID");
+        System.out.println("2.Search Customer by Name");
+        System.out.println("3.Search Customer by Email");
+        String value = this.scanner.nextLine().split("\\s+")[0];
+        switch (value) {
+            case "1":
+                searchCustomerByID();
+                break;
+            case "2":
+                searchCustomerByName();
+                break;
+            case "3":
+                searchCustomerByEmail();
+                break;
+            default:
+                System.out.println("Error: Invalid choice");
+                break;
+        }
+    }
+
+    public void searchCustomerByID() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.print("Enter Customer ID: ");
+        int customerId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
+        List<Customer> customer = this.customers.stream().filter(p -> p.getCustomerId() == customerId)
+                .collect(Collectors.toList());
+        if (customer.size() == 0) {
+            System.out.println("Error: Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showCustomerList(customer);
+    }
+
+    public void searchCustomerByName() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.print("Enter Customer Name: ");
+        String name = this.scanner.nextLine().split("\\s+")[0];
+        List<Customer> customer = this.customers.stream().filter(p -> p.getName().equals(name))
+                .collect(Collectors.toList());
+        if (customer.size() == 0) {
+            System.out.println("Error: Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showCustomerList(customer);
+    }
+
+    public void searchCustomerByEmail() {
+        System.out.println("========================== SEARCH CUSTOMER =============================");
+        System.out.print("Enter Customer Email: ");
+        String email = this.scanner.nextLine().split("\\s+")[0];
+        List<Customer> customer = this.customers.stream().filter(p -> p.getEmail().equals(email))
+                .collect(Collectors.toList());
+        if (customer.size() == 0) {
+            System.out.println("Error: Customer not found");
+            System.out.println("=====================================");
+            return;
+        }
+        showCustomerList(customer);
     }
 
     public void viewAllCustomers() {
@@ -130,7 +260,7 @@ public class CustomerService {
     private void showCustomerList(List<Customer> customersList) {
         System.out.println("Result -\n");
         if (customersList.size() == 0) {
-            System.out.println("NO CUSTOMERS YET");
+            System.out.println("Error: NO CUSTOMERS YET");
             System.out.println("=====================================");
             return;
         }
@@ -248,115 +378,8 @@ public class CustomerService {
         System.out.println("\n===================================== END CUSTOMER LIST =============================\n");
     }
 
-    public void searchCustomerByID() {
-        System.out.println("========================== SEARCH CUSTOMER =============================");
-        System.out.print("Enter Customer ID: ");
-        int customerId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
-        List<Customer> customer = this.customers.stream().filter(p -> p.getCustomerId() == customerId)
-                .collect(Collectors.toList());
-        if (customer.size() == 0) {
-            System.out.println("Customer not found");
-            System.out.println("=====================================");
-            return;
-        }
-        showCustomerList(customer);
-    }
-
-    public void searchCustomerByName() {
-        System.out.println("========================== SEARCH CUSTOMER =============================");
-        System.out.print("Enter Customer Name: ");
-        String name = this.scanner.nextLine().split("\\s+")[0];
-        List<Customer> customer = this.customers.stream().filter(p -> p.getName().equals(name))
-                .collect(Collectors.toList());
-        if (customer.size() == 0) {
-            System.out.println("Customer not found");
-            System.out.println("=====================================");
-            return;
-        }
-        showCustomerList(customer);
-    }
-
-    public void searchCustomerByEmail() {
-        System.out.println("========================== SEARCH CUSTOMER =============================");
-        System.out.print("Enter Customer Email: ");
-        String email = this.scanner.nextLine().split("\\s+")[0];
-        List<Customer> customer = this.customers.stream().filter(p -> p.getEmail().equals(email))
-                .collect(Collectors.toList());
-        if (customer.size() == 0) {
-            System.out.println("Customer not found");
-            System.out.println("=====================================");
-            return;
-        }
-        showCustomerList(customer);
-    }
-
     public Customer getCustomerById(int customerId) {
         return this.customers.stream().filter(p -> p.getCustomerId() == customerId).findFirst().orElse(null);
     }
 
-    public void updateCustomer() {
-        System.out.println("========================== UPDATE CUSTOMER =============================");
-
-        System.out.print("Enter Customer ID: ");
-        int customerId = Integer.parseInt(this.scanner.nextLine().split("\\s+")[0]);
-        int customerIndex = IntStream.range(0, this.customers.size())
-                .filter(i -> this.customers.get(i).getCustomerId() == customerId)
-                .findFirst().orElse(-1);
-        if (customerIndex == -1) {
-            System.out.println("Customer not found");
-            System.out.println("=====================================");
-            return;
-        }
-        Customer customer = this.customers.get(customerIndex);
-
-        System.out.print("Enter the new name (current name: " + customer.getName()
-                + ") (press enter to skip - min 15 characters): ");
-        String name = this.scanner.nextLine().split("\\s+")[0];
-        if (!name.isEmpty() && name.length() > 15) {
-            System.out.println("Customer name is not valid");
-            return;
-        }
-        if (!name.isEmpty()) {
-            customer.setName(name);
-        }
-
-        System.out.print("Enter the new email (current email: " + customer.getEmail()
-                + ") (press enter to skip - contains @): ");
-        String email = this.scanner.nextLine().split("\\s+")[0];
-        if (!email.isEmpty() && !email.contains("@")) {
-            System.out.println("Customer email is invalid");
-            return;
-        }
-        if (!email.isEmpty()) {
-            customer.setEmail(email);
-        }
-
-        System.out.print(
-                "Enter the new phone (current phone: " + customer.getPhone() + ") (press enter to skip - 10 digits): ");
-        String phone = this.scanner.nextLine().split("\\s+")[0];
-        if (!phone.isEmpty() && phone.length() != 10) {
-            System.out.println("Customer phone is invalid");
-            return;
-        }
-        if (!phone.isEmpty()) {
-            customer.setPhone(Long.parseLong(phone));
-        }
-
-        System.out.print(
-                "Enter the new address (current address: " + customer.getAddress()
-                        + ") (press enter to skip - max 50 characters): ");
-        String address = this.scanner.nextLine().split("\\s+")[0];
-        if (!address.isEmpty() && address.length() > 50) {
-            System.out.println("Customer address is invalid");
-            return;
-        }
-        if (!address.isEmpty()) {
-            customer.setAddress(address);
-        }
-
-        this.customers.set(customerIndex, customer);
-        utils.saveData("./db/customers.txt", this.customers);
-        System.out.println("===== CUSTOMER UPDATED SUCCESSFULLY ====================");
-        System.out.println("=====================================");
-    }
 }
